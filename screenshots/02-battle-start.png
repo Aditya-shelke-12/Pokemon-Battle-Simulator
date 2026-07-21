@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
+  <rect width="100%" height="100%" fill="#1e1e1e"/>
+  <foreignObject x="10" y="10" width="880" height="280">
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <pre style="color:#dcdcdc;font-family:monospace;font-size:16px;">Pikachu (HP: 100/100)
+VS
+Charizard (HP: 120/120)
+
+Choose a move:
+1. Thunderbolt
+2. Quick Attack
+3. Iron Tail
+4. Thunder
+</pre>
+    </body>
+  </foreignObject>
+</svg>

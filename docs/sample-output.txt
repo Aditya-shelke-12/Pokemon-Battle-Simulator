@@ -1,0 +1,24 @@
+----------------------------------------
+Pikachu (HP : 100/100)
+VS
+Charizard (HP : 120/120)
+----------------------------------------
+Choose a move:
+
+1. Thunderbolt
+2. Quick Attack
+3. Iron Tail
+4. Thunder
+
+Enter your choice : 
+Pikachu used Thunderbolt!
+It dealt 90 damage!
+Charizard's HP: 30/120
+
+Charizard fainted!
+Gary sent out Charizard!
+
+==============================
+Battle Finished!
+Winner : Ash
+==============================
