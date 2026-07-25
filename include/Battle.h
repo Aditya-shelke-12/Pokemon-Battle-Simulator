@@ -15,7 +15,7 @@ class Battle {
             int damage;
             double typeMultiplier;
             double stabMultiplier;
-            double critical;
+            bool critical;
             bool missed;
         };
         
@@ -25,9 +25,14 @@ class Battle {
                             const Pokemon& defender,
                             const Move& move);
 
-        // Executes one complete turn
-        void executeTurn(Trainer& attacker,
-                        Trainer& defender);
+        // Chooses a move for the attacker's active Pokemon and returns it
+        Move& chooseMove(Trainer& trainer);
+
+        // Executes a single attack from attacker to defender using the given move
+        void executeAttack(
+            Trainer& attacker,
+            Trainer& defender,
+            Move& move);
 
         // Handles switching after a Pokémon faints
         void handleFaintedPokemon(Trainer& trainer);
@@ -36,6 +41,10 @@ class Battle {
         bool checkWinner() const;
 
         bool attackHits(const Move& move);
+
+        bool isCriticalHit();
+
+        bool playerMovesFirst();
 
     public:
         Battle(const Trainer& player, const Trainer& opponent);

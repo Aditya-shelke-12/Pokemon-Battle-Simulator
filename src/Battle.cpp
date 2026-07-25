@@ -14,18 +14,48 @@ Battle::Battle(const Trainer& player, const Trainer& opponent)
 }
 
 
-void Battle::startBattle(){
+void Battle::startBattle()
+{
+    while (!checkWinner())
+    {
+        Pokemon& playerPokemon = player.getTeam().getActivePokemon();
+        Pokemon& opponentPokemon = opponent.getTeam().getActivePokemon();
 
-    while (!checkWinner()){
+        std::cout << "\n----------------------------------------";
+        std::cout << "\n" << playerPokemon.getName()
+                << " (HP : " << playerPokemon.getCurrentHP()
+                << "/" << playerPokemon.getMaxHP() << ")";
+        std::cout << "\nVS";
+        std::cout << "\n" << opponentPokemon.getName()
+                << " (HP : " << opponentPokemon.getCurrentHP()
+                << "/" << opponentPokemon.getMaxHP() << ")";
+        std::cout << "\n----------------------------------------";
 
-        executeTurn(player, opponent);
+        // Player chooses move
+        Move& playerMove = chooseMove(player);
 
-        if (checkWinner()){
+        // Opponent chooses move
+        Move& opponentMove = chooseMove(opponent);
 
-            break;
+
+        if (playerMovesFirst())
+        {
+            executeAttack(player, opponent, playerMove);
+
+            if (!checkWinner())
+            {
+                executeAttack(opponent, player, opponentMove);
+            }
         }
+        else
+        {
+            executeAttack(opponent, player, opponentMove);
 
-        executeTurn(opponent, player);
+            if (!checkWinner())
+            {
+                executeAttack(player, opponent, playerMove);
+            }
+        }
     }
 
     std::cout << "\n==============================\n";
@@ -50,27 +80,16 @@ void Battle::startBattle(){
     std::cout << "==============================\n";
 }
 
-void Battle::executeTurn(Trainer& attacker, Trainer& defender)
+Move& Battle::chooseMove(Trainer& trainer)
 {
-    Pokemon& attackerPokemon = attacker.getTeam().getActivePokemon();
-    Pokemon& defenderPokemon = defender.getTeam().getActivePokemon();
-
-    std::cout << "\n----------------------------------------";
-    std::cout << "\n" << attackerPokemon.getName()
-              << " (HP : " << attackerPokemon.getCurrentHP()
-              << "/" << attackerPokemon.getMaxHP() << ")";
-    std::cout << "\nVS";
-    std::cout << "\n" << defenderPokemon.getName()
-              << " (HP : " << defenderPokemon.getCurrentHP()
-              << "/" << defenderPokemon.getMaxHP() << ")";
-    std::cout << "\n----------------------------------------";
+    Pokemon& active = trainer.getTeam().getActivePokemon();
 
     std::cout << "\nChoose a move:\n\n";
 
     for (int i = 0; i < 4; i++)
     {
         std::cout << i + 1 << ". "
-                  << attackerPokemon.getMove(i).getName()
+                  << active.getMove(i).getName()
                   << "\n";
     }
 
@@ -97,39 +116,52 @@ void Battle::executeTurn(Trainer& attacker, Trainer& defender)
         std::cout << "Invalid choice. Enter 1-4.\n";
     }
 
-    Move& selectedMove = attackerPokemon.getMove(choice - 1);
+    return active.getMove(choice - 1);
+}
+
+void Battle::executeAttack(Trainer& attacker, Trainer& defender, Move& selectedMove)
+{
+    Pokemon& attackerPokemon = attacker.getTeam().getActivePokemon();
+    Pokemon& defenderPokemon = defender.getTeam().getActivePokemon();
 
     std::cout << "\n"
               << attackerPokemon.getName()
               << " used "
               << selectedMove.getName()
               << "!\n\n";
-    
-    if (!attackHits(selectedMove))
-    {
-        std::cout << "The attack missed!\n";
-        return;
+
+    if (!attackHits(selectedMove)) 
+    { 
+        std::cout << "The attack missed!\n"; 
+        return; 
     }
 
-    Battle::DamageResult result = calculateDamage(
+    DamageResult result = calculateDamage(
         attackerPokemon,
         defenderPokemon,
         selectedMove
     );
 
-    if (result.typeMultiplier > 1){
-        std::cout<<"It's Super Effective !\n";
-    } else if (result.typeMultiplier == 0){
-        std::cout<<"It doesn't affect on" <<defenderPokemon.getName() <<"\n";
-    } else if (result.typeMultiplier < 1){
-        std::cout<<"It's not very Effective !\n";
+    if (result.typeMultiplier > 1)
+    { 
+        std::cout<<"It's Super Effective ! \n"; 
+    } else if (result.typeMultiplier == 0)
+    { 
+        std::cout<<"It doesnt affect " <<defenderPokemon.getName() <<"\n"; 
+    } else if (result.typeMultiplier < 1)
+    { 
+        std::cout<<"It's not very Effective !\n"; 
+    }
+
+    if (result.critical){
+        std::cout<<"It's Critical Hit!\n";
     }
 
     defenderPokemon.takeDamage(result.damage);
 
-    std::cout << "It dealt "
+    std::cout << "\nIt dealt "
               << result.damage
-              << " damage!\n\n";
+              << " damage!\n";
 
     std::cout << defenderPokemon.getName()
               << "'s HP: "
@@ -155,11 +187,11 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
 
     int damage = move.getPower() + attacker.getAttack() / 2 - defender.getDefense()/ 3;
 
-    double stabMultiplier = 1;
-
     double multiplier =
         TypeChart::getMultiplier(move.getType(), defender.getType1()) *
         TypeChart::getMultiplier(move.getType(), defender.getType2());
+
+    double stabMultiplier = 1;
 
     if (move.getType() == attacker.getType1() ||
         move.getType() == attacker.getType2())
@@ -170,15 +202,33 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
     damage *= multiplier;
     damage *= stabMultiplier;
 
+    if (isCriticalHit())
+    {
+        damage *= 1.5;
+        result.critical = true;
+    }
+    else
+    {
+        result.critical = false;
+    }
+
     if (multiplier == 0){
         result.damage = 0;
     } else {
         result.damage = std::max(1, damage);
     }
 
-    result.stabMultiplier = stabMultiplier;
     result.typeMultiplier = multiplier;
+    result.stabMultiplier = stabMultiplier;
+
     return result;
+}
+
+bool Battle::isCriticalHit(){
+
+    int roll = rand()%100 + 1;
+
+    return roll <= 10;
 }
 
 bool Battle::attackHits(const Move& move)
@@ -186,6 +236,17 @@ bool Battle::attackHits(const Move& move)
     int roll = rand() %100 + 1;
 
     return roll <= move.getAccuracy();
+}
+
+bool Battle::playerMovesFirst()
+{
+    int playerSpeed = player.getTeam().getActivePokemon().getSpeed();
+    int opponentSpeed = opponent.getTeam().getActivePokemon().getSpeed();
+
+    if(playerSpeed == opponentSpeed) 
+        return rand() % 2;
+
+    return playerSpeed > opponentSpeed;
 }
 
 void Battle::handleFaintedPokemon(Trainer& trainer)
@@ -198,10 +259,10 @@ void Battle::handleFaintedPokemon(Trainer& trainer)
         {
             team.switchPokemon(i);
 
-            std::cout << trainer.getName()
+            std::cout << "\n" <<trainer.getName()
                       << " sent out "
                       << team.getActivePokemon().getName()
-                      << "!\n\n";
+                      << "!\n";
 
             return;
         }
@@ -211,8 +272,8 @@ void Battle::handleFaintedPokemon(Trainer& trainer)
               << " has no usable Pokemon left!\n\n";
 }
 
-bool Battle::checkWinner() const{
-
+bool Battle::checkWinner() const
+{
     if (player.getTeam().hasUsablePokemon() && opponent.getTeam().hasUsablePokemon()){
 
         return false;
@@ -220,3 +281,4 @@ bool Battle::checkWinner() const{
 
     return true;
 }
+
