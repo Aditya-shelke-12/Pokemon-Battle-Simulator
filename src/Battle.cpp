@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <cstdlib>
 #include "Battle.h"
 #include "Trainer.h"
 #include "Pokemon.h"
@@ -98,31 +99,37 @@ void Battle::executeTurn(Trainer& attacker, Trainer& defender)
 
     Move& selectedMove = attackerPokemon.getMove(choice - 1);
 
+    std::cout << "\n"
+              << attackerPokemon.getName()
+              << " used "
+              << selectedMove.getName()
+              << "!\n\n";
+    
+    if (!attackHits(selectedMove))
+    {
+        std::cout << "The attack missed!\n";
+        return;
+    }
+
     Battle::DamageResult result = calculateDamage(
         attackerPokemon,
         defenderPokemon,
         selectedMove
     );
-    
-    defenderPokemon.takeDamage(result.damage);
 
-    std::cout << "\n"
-              << attackerPokemon.getName()
-              << " used "
-              << selectedMove.getName()
-              << "!\n";
-    
     if (result.typeMultiplier > 1){
-        std::cout<<"It's Super Effective !";
+        std::cout<<"It's Super Effective !\n";
     } else if (result.typeMultiplier == 0){
-        std::cout<<"It has no effect! on " <<defenderPokemon.getName();
+        std::cout<<"It doesn't affect on" <<defenderPokemon.getName() <<"\n";
     } else if (result.typeMultiplier < 1){
-        std::cout<<"It's not very Effective !";
+        std::cout<<"It's not very Effective !\n";
     }
+
+    defenderPokemon.takeDamage(result.damage);
 
     std::cout << "It dealt "
               << result.damage
-              << " damage!\n";
+              << " damage!\n\n";
 
     std::cout << defenderPokemon.getName()
               << "'s HP: "
@@ -172,6 +179,13 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
     result.stabMultiplier = stabMultiplier;
     result.typeMultiplier = multiplier;
     return result;
+}
+
+bool Battle::attackHits(const Move& move)
+{
+    int roll = rand() %100 + 1;
+
+    return roll <= move.getAccuracy();
 }
 
 void Battle::handleFaintedPokemon(Trainer& trainer)

@@ -35,6 +35,8 @@ class Battle {
         // Returns true if the battle has ended
         bool checkWinner() const;
 
+        bool attackHits(const Move& move);
+
     public:
         Battle(const Trainer& player, const Trainer& opponent);
 

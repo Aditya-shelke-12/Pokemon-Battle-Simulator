@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include "Move.h"
 #include "Pokemon.h"
 #include "Trainer.h"
@@ -8,6 +10,8 @@ using namespace std;
 
 int main()
 {
+
+    srand(static_cast<unsigned>(time(nullptr)));
     // =========================
     // Electric
     // =========================
