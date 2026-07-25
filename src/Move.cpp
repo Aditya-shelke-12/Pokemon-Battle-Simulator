@@ -2,16 +2,16 @@
 #include <iostream>
 
 Move::Move()
-    : name(""), type(""), power(0), pp(0), accuracy(0)
+    : name(), type(PokemonType::None), power(0), pp(0), accuracy(0)
 {
 }
 
 Move::Move(std::string name,
-    std::string type,
+    PokemonType type,
     int power,
     short int pp,
     short int accuracy)
-    : name(std::move(name)), type(std::move(type)), power(power), pp(pp), accuracy(accuracy)
+    : name(std::move(name)), type(type), power(power), pp(pp), accuracy(accuracy)
 {
 }
 
@@ -20,7 +20,7 @@ std::string Move::getName() const
     return name;
 }
 
-std::string Move::getType() const
+PokemonType Move::getType() const
 {
     return type;
 }
@@ -51,11 +51,11 @@ bool Move::use()
     return true;
 }
 
-void Move::showInfo()
+void Move::showInfo() const
 {
     std::cout << "=====================";
     std::cout << "\nmove : " << name;
-    std::cout << "\nType : " << type;
+    std::cout << "\nType : " << PokemonTypeToString(type);
     std::cout << "\nPower : " << power;
     std::cout << "\nAccuracy : " << accuracy;
     std::cout << "\nPP : " << pp;

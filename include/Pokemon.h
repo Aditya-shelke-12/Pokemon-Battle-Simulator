@@ -1,13 +1,14 @@
 #pragma once
 #include "Move.h"
+#include "PokemonType.h"
 #include <string>
-
 
 class Pokemon
 {
 private:
     std::string name;
-    std::string type;
+    PokemonType type1;
+    PokemonType type2;
 
     int maxHP;
     int currentHP;
@@ -24,7 +25,8 @@ public:
     Pokemon();
     Pokemon(
         std::string name,
-        std::string type,
+        PokemonType type1,
+        PokemonType type2,
         int maxHP,
         int attack,
         int defense,
@@ -59,6 +61,9 @@ public:
     int getSpDefense() const;
 
     int getSpeed() const;
+
+    PokemonType getType1() const;
+    PokemonType getType2() const;
 
     Move& getMove(int index);
 };

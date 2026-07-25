@@ -4,6 +4,8 @@
 #include "Trainer.h"
 #include "Pokemon.h"
 #include "Move.h"
+#include "PokemonType.h"
+#include "TypeChart.h"
 
 Battle::Battle(const Trainer& player, const Trainer& opponent)
     : player(player), opponent(opponent)
@@ -96,22 +98,30 @@ void Battle::executeTurn(Trainer& attacker, Trainer& defender)
 
     Move& selectedMove = attackerPokemon.getMove(choice - 1);
 
-    int damage = calculateDamage(
+    Battle::DamageResult result = calculateDamage(
         attackerPokemon,
         defenderPokemon,
         selectedMove
     );
-
-    defenderPokemon.takeDamage(damage);
+    
+    defenderPokemon.takeDamage(result.damage);
 
     std::cout << "\n"
               << attackerPokemon.getName()
               << " used "
               << selectedMove.getName()
               << "!\n";
+    
+    if (result.typeMultiplier > 1){
+        std::cout<<"It's Super Effective !";
+    } else if (result.typeMultiplier == 0){
+        std::cout<<"It has no effect! on " <<defenderPokemon.getName();
+    } else if (result.typeMultiplier < 1){
+        std::cout<<"It's not very Effective !";
+    }
 
     std::cout << "It dealt "
-              << damage
+              << result.damage
               << " damage!\n";
 
     std::cout << defenderPokemon.getName()
@@ -130,13 +140,38 @@ void Battle::executeTurn(Trainer& attacker, Trainer& defender)
     }
 }
 
-int Battle::calculateDamage(const Pokemon& attacker,
+Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
                             const Pokemon& defender,
                             const Move& move){
 
-    int damage = move.getPower() + attacker.getAttack() / 2 - defender.getDefense() / 3;
+    Battle::DamageResult result;
 
-    return std::max(1, damage);
+    int damage = move.getPower() + attacker.getAttack() / 2 - defender.getDefense()/ 3;
+
+    double stabMultiplier = 1;
+
+    double multiplier =
+        TypeChart::getMultiplier(move.getType(), defender.getType1()) *
+        TypeChart::getMultiplier(move.getType(), defender.getType2());
+
+    if (move.getType() == attacker.getType1() ||
+        move.getType() == attacker.getType2())
+    {
+        stabMultiplier = 1.5;
+    }
+
+    damage *= multiplier;
+    damage *= stabMultiplier;
+
+    if (multiplier == 0){
+        result.damage = 0;
+    } else {
+        result.damage = std::max(1, damage);
+    }
+
+    result.stabMultiplier = stabMultiplier;
+    result.typeMultiplier = multiplier;
+    return result;
 }
 
 void Battle::handleFaintedPokemon(Trainer& trainer)

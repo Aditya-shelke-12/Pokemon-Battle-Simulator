@@ -1,12 +1,13 @@
 #pragma once
 
 #include <string>
+#include "PokemonType.h"
 
 class Move
 {
 private:
     std::string name;
-    std::string type;
+    PokemonType type;
 
     int power;
     short int pp;
@@ -15,14 +16,14 @@ private:
 public:
     Move();
     Move(std::string name,
-         std::string type,
+         PokemonType type,
          int power,
          short int pp,
          short int accuracy);
 
     std::string getName() const;
 
-    std::string getType() const;
+    PokemonType getType() const;
 
     int getPower() const;
 
@@ -32,5 +33,5 @@ public:
 
     bool use();
 
-    void showInfo();
+    void showInfo() const;
 };

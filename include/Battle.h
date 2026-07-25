@@ -10,8 +10,18 @@ class Battle {
         Trainer player;
         Trainer opponent;
 
+        struct DamageResult
+        {
+            int damage;
+            double typeMultiplier;
+            double stabMultiplier;
+            double critical;
+            bool missed;
+        };
+        
+
         // Core battle logic
-        int calculateDamage(const Pokemon& attacker,
+        DamageResult calculateDamage(const Pokemon& attacker,
                             const Pokemon& defender,
                             const Move& move);
 
