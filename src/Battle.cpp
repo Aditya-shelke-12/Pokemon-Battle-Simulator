@@ -119,8 +119,10 @@ Move& Battle::chooseMove(Trainer& trainer)
 
     for (int i = 0; i < 4; i++)
     {
-        std::cout << i + 1 << ". "
-                  << active.getMove(i).getName()
+        std::cout <<std::left
+                  << i + 1 << ". "
+                  <<std::setw(15) << active.getMove(i).getName()
+                  <<"(PP: " <<active.getMove(i).getPP() <<")"
                   << "\n";
     }
 
@@ -198,6 +200,12 @@ void Battle::executeAttack(Trainer& attacker, Trainer& defender, Move& selectedM
 {
     Pokemon& attackerPokemon = attacker.getTeam().getActivePokemon();
     Pokemon& defenderPokemon = defender.getTeam().getActivePokemon();
+
+    if(!selectedMove.use()){
+
+        std::cout<<selectedMove.getName() <<" has no PP Left!";
+        return;
+    }
 
     std::cout << "\n"
               << attackerPokemon.getName()
@@ -386,9 +394,11 @@ void Battle::displayWinner() const{
 
 void Battle::handleFaintedPokemon(Trainer& trainer)
 {
-    Team& team = trainer.getTeam();
 
-    switchPokemon(trainer);
+    if(!checkWinner()){
+        switchPokemon(trainer);
+        return;
+    }
 
     std::cout << trainer.getName()
               << " has no usable Pokemon left!\n\n";
