@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="300">
-  <rect width="100%" height="100%" fill="#1e1e1e"/>
+  <rect width="100%" height="100%" fill="#111827"/>
   <foreignObject x="10" y="10" width="980" height="280">
     <body xmlns="http://www.w3.org/1999/xhtml">
-      <pre style="color:#dcdcdc;font-family:monospace;font-size:14px;">Pokemon-Battle-Simulator/
+      <pre style="color:#d1d5db;font-family:monospace;font-size:14px;">Pokemon-Battle-Simulator/
 ├── include/
 ├── src/
 ├── docs/

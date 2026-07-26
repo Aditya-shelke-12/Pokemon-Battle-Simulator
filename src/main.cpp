@@ -189,5 +189,8 @@ int main()
 
     battle.startBattle();
 
+    std::cin.get();
+    std::cin.get();
+
     return 0;
 }

@@ -40,22 +40,28 @@ class Battle {
         // Handles switching after a Pokémon faints
         void handleFaintedPokemon(Trainer& trainer);
 
+        Move& chooseRandomMove(Trainer& trainer) const;
+
+        Action chooseAIAction(const Trainer& trainer) const;
+
+        void switchRandomPokemon(Trainer& trainer);
+
         void switchPokemon(Trainer& trainer);
 
         void displayWinner() const;
 
-        void displayBattleStatus() ;
+        void displayBattleStatus() const;
 
         void displayTeam(const Trainer& trainer) const;
 
         // Returns true if the battle has ended
         bool checkWinner() const;
 
-        bool attackHits(const Move& move);
+        bool attackHits(const Move& move) const;
 
-        bool isCriticalHit();
+        bool isCriticalHit() const;
 
-        bool playerMovesFirst();
+        bool playerMovesFirst() const;
 
     public:
         Battle(const Trainer& player, const Trainer& opponent);

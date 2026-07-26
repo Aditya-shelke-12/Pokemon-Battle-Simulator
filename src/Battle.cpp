@@ -10,6 +10,11 @@
 #include "TypeChart.h"
 #include "Action.h"
 
+constexpr int MOVE_SLOTS = 4;
+constexpr int MAX_ACCURACY = 100;
+constexpr int CRITICAL_HIT_CHANCE = 10;
+constexpr double STAB_MULTIPLIER = 1.5;
+
 Battle::Battle(const Trainer& player, const Trainer& opponent)
     : player(player), opponent(opponent)
 {
@@ -41,11 +46,11 @@ void Battle::startBattle()
         }
 
         // ---------- Opponent ----------
-        Action opponentAction = chooseAction(opponent);
+        Action opponentAction = chooseAIAction(opponent);
 
         if (opponentAction == Action::Fight)
         {
-            opponentMove = &chooseMove(opponent);
+            opponentMove = &chooseRandomMove(opponent);
         }
         else
         {
@@ -90,16 +95,16 @@ void Battle::startBattle()
     displayWinner();
 }
 
-void Battle::displayBattleStatus() {
+void Battle::displayBattleStatus() const {
 
     std::cout << "\n----------------------------------------\n";
 
-    std::cout<<player.getName() <<" vs " <<opponent.getName();
+    std::cout << player.getName() << " vs " << opponent.getName();
 
     std::cout << "\n----------------------------------------\n";
 
-    Pokemon& playerPokemon = player.getTeam().getActivePokemon();
-    Pokemon& opponentPokemon = opponent.getTeam().getActivePokemon();
+    const Pokemon& playerPokemon = player.getTeam().getActivePokemon();
+    const Pokemon& opponentPokemon = opponent.getTeam().getActivePokemon();
 
     std::cout << "\n" << playerPokemon.getName()
               << "\n(HP : " << playerPokemon.getCurrentHP()
@@ -117,12 +122,12 @@ Move& Battle::chooseMove(Trainer& trainer)
 
     std::cout << "\nChoose a move:\n\n";
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < MOVE_SLOTS; i++)
     {
-        std::cout <<std::left
+        std::cout << std::left
                   << i + 1 << ". "
-                  <<std::setw(15) << active.getMove(i).getName()
-                  <<"(PP: " <<active.getMove(i).getPP() <<")"
+                  << std::setw(15) << active.getMove(i).getName()
+                  << "(PP: " << active.getMove(i).getPP() << ")"
                   << "\n";
     }
 
@@ -152,21 +157,20 @@ Move& Battle::chooseMove(Trainer& trainer)
     return active.getMove(choice - 1);
 }
 
-Action Battle::chooseAction(const Trainer& player) const{
+Action Battle::chooseAction(const Trainer& trainer) const {
 
+    std::cout << "\n=========================\n";
+    std::cout << "What will "
+              << trainer.getName()
+              << " do?\n\n";
 
-    std::cout <<"\n=========================\n";
-    std::cout <<"what will " 
-              <<player.getName()
-              <<" do:\n\n";
-
-    std::cout <<"1. Fight\n"
-              <<"2. Pokemon";
-    std::cout<<"\n=========================\n";
+    std::cout << "1. Fight\n"
+              << "2. Pokemon\n";
+    std::cout << "=========================\n";
 
     int choice;
 
-     while (true)
+    while (true)
     {
         std::cout << "\nEnter your choice : ";
 
@@ -188,12 +192,53 @@ Action Battle::chooseAction(const Trainer& player) const{
 
         case 2:
             return Action::Pokemon;
-        
+
         default:
             std::cout << "Invalid choice. Choose 1 or 2.\n";
-            break;   
+            break;
         }
     }
+}
+
+Move& Battle::chooseRandomMove(Trainer& trainer) const {
+
+    while (true)
+    {
+        int choice = rand() % MOVE_SLOTS;
+
+        Move& selectedMove = trainer.getTeam().getActivePokemon().getMove(choice);
+
+        if (selectedMove.getPP() > 0)
+            return selectedMove;
+    }
+}
+
+void Battle::switchRandomPokemon(Trainer& trainer) {
+
+    while (true) {
+
+        int choice = rand() % TEAM_SIZE;
+
+        Pokemon& selectedPokemon = trainer.getTeam().getPokemon(choice);
+
+        if (&selectedPokemon != &trainer.getTeam().getActivePokemon() && !selectedPokemon.isFainted()) {
+
+            trainer.getTeam().switchPokemon(choice);
+
+            std::cout << "\n"
+                      << trainer.getName()
+                      << " switched to "
+                      << trainer.getTeam().getActivePokemon().getName()
+                      << "!\n";
+
+            return;
+        }
+    }
+}
+
+Action Battle::chooseAIAction(const Trainer&) const
+{
+    return Action::Fight;
 }
 
 void Battle::executeAttack(Trainer& attacker, Trainer& defender, Move& selectedMove)
@@ -315,7 +360,7 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
     if (move.getType() == attacker.getType1() ||
         move.getType() == attacker.getType2())
     {
-        stabMultiplier = 1.5;
+        stabMultiplier = STAB_MULTIPLIER;
     }
 
     damage *= multiplier;
@@ -323,7 +368,7 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
 
     if (isCriticalHit())
     {
-        damage *= 1.5;
+        damage *= STAB_MULTIPLIER;
         result.critical = true;
     }
     else
@@ -343,21 +388,21 @@ Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
     return result;
 }
 
-bool Battle::isCriticalHit(){
+bool Battle::isCriticalHit() const {
 
-    int roll = rand()%100 + 1;
+    int roll = rand() % MAX_ACCURACY + 1;
 
-    return roll <= 10;
+    return roll <= CRITICAL_HIT_CHANCE;
 }
 
-bool Battle::attackHits(const Move& move)
+bool Battle::attackHits(const Move& move) const
 {
-    int roll = rand() %100 + 1;
+    int roll = rand() % MAX_ACCURACY + 1;
 
     return roll <= move.getAccuracy();
 }
 
-bool Battle::playerMovesFirst()
+bool Battle::playerMovesFirst() const
 {
     int playerSpeed = player.getTeam().getActivePokemon().getSpeed();
     int opponentSpeed = opponent.getTeam().getActivePokemon().getSpeed();
@@ -396,8 +441,17 @@ void Battle::handleFaintedPokemon(Trainer& trainer)
 {
 
     if(!checkWinner()){
-        switchPokemon(trainer);
-        return;
+        
+        if (&trainer == &player)
+        {
+            switchPokemon(trainer);
+            return;
+        }
+        else
+        {
+            switchRandomPokemon(trainer);
+            return;
+        }
     }
 
     std::cout << trainer.getName()

@@ -1,8 +1,8 @@
 #include "Team.h"
 
-Team::Team(Pokemon team[6])
+Team::Team(Pokemon team[TEAM_SIZE])
 {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < TEAM_SIZE; i++)
     {
         this->team[i] = team[i];
     }
@@ -53,7 +53,7 @@ bool Team::switchPokemon(int index)
 
 bool Team::hasUsablePokemon() const
 {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < TEAM_SIZE; i++)
     {
         if (!team[i].isFainted())
         {

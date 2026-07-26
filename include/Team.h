@@ -2,10 +2,12 @@
 
 #include "Pokemon.h"
 
+constexpr int TEAM_SIZE = 6;
+
 class Team
 {
 private:
-    Pokemon team[6];
+    Pokemon team[TEAM_SIZE];
     int activePokemonIndex;
 
 public:
