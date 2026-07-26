@@ -14,6 +14,7 @@ set(SOURCES
     src/Team.cpp
     src/Trainer.cpp
     src/Battle.cpp
+    src/TypeChart.cpp
 )
 
 add_executable(PokemonBattleSimulator ${SOURCES})

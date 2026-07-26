@@ -1,12 +1,14 @@
 #include <iostream>
 #include <limits>
 #include <cstdlib>
+#include <iomanip>
 #include "Battle.h"
 #include "Trainer.h"
 #include "Pokemon.h"
 #include "Move.h"
 #include "PokemonType.h"
 #include "TypeChart.h"
+#include "Action.h"
 
 Battle::Battle(const Trainer& player, const Trainer& opponent)
     : player(player), opponent(opponent)
@@ -18,66 +20,95 @@ void Battle::startBattle()
 {
     while (!checkWinner())
     {
-        Pokemon& playerPokemon = player.getTeam().getActivePokemon();
-        Pokemon& opponentPokemon = opponent.getTeam().getActivePokemon();
+        displayBattleStatus();
 
-        std::cout << "\n----------------------------------------";
-        std::cout << "\n" << playerPokemon.getName()
-                << " (HP : " << playerPokemon.getCurrentHP()
-                << "/" << playerPokemon.getMaxHP() << ")";
-        std::cout << "\nVS";
-        std::cout << "\n" << opponentPokemon.getName()
-                << " (HP : " << opponentPokemon.getCurrentHP()
-                << "/" << opponentPokemon.getMaxHP() << ")";
-        std::cout << "\n----------------------------------------";
+        Pokemon* playerAttacker = &player.getTeam().getActivePokemon();
+        Pokemon* opponentAttacker = &opponent.getTeam().getActivePokemon();
 
-        // Player chooses move
-        Move& playerMove = chooseMove(player);
+        Move* playerMove = nullptr;
+        Move* opponentMove = nullptr;
 
-        // Opponent chooses move
-        Move& opponentMove = chooseMove(opponent);
+        // ---------- Player ----------
+        Action playerAction = chooseAction(player);
 
+        if (playerAction == Action::Fight)
+        {
+            playerMove = &chooseMove(player);
+        }
+        else
+        {
+            switchPokemon(player);
+        }
 
+        // ---------- Opponent ----------
+        Action opponentAction = chooseAction(opponent);
+
+        if (opponentAction == Action::Fight)
+        {
+            opponentMove = &chooseMove(opponent);
+        }
+        else
+        {
+            switchPokemon(opponent);
+        }
+
+        // ---------- Battle ----------
         if (playerMovesFirst())
         {
-            executeAttack(player, opponent, playerMove);
-
-            if (!checkWinner())
+            if (playerMove &&
+                &player.getTeam().getActivePokemon() == playerAttacker &&
+                !checkWinner())
             {
-                executeAttack(opponent, player, opponentMove);
+                executeAttack(player, opponent, *playerMove);
+            }
+
+            if (opponentMove &&
+                &opponent.getTeam().getActivePokemon() == opponentAttacker &&
+                !checkWinner())
+            {
+                executeAttack(opponent, player, *opponentMove);
             }
         }
         else
         {
-            executeAttack(opponent, player, opponentMove);
-
-            if (!checkWinner())
+            if (opponentMove &&
+                &opponent.getTeam().getActivePokemon() == opponentAttacker &&
+                !checkWinner())
             {
-                executeAttack(player, opponent, playerMove);
+                executeAttack(opponent, player, *opponentMove);
+            }
+
+            if (playerMove &&
+                &player.getTeam().getActivePokemon() == playerAttacker &&
+                !checkWinner())
+            {
+                executeAttack(player, opponent, *playerMove);
             }
         }
     }
 
-    std::cout << "\n==============================\n";
-    std::cout << "Battle Finished!\n";
+    displayWinner();
+}
 
-    bool playerHasPokemon = player.getTeam().hasUsablePokemon();
-    bool opponentHasPokemon = opponent.getTeam().hasUsablePokemon();
+void Battle::displayBattleStatus() {
 
-    if (playerHasPokemon && !opponentHasPokemon)
-    {
-        std::cout << "Winner : " << player.getName() << "\n";
-    }
-    else if (!playerHasPokemon && opponentHasPokemon)
-    {
-        std::cout << "Winner : " << opponent.getName() << "\n";
-    }
-    else
-    {
-        std::cout << "Winner : None (tie or both teams are out of usable Pokemon)\n";
-    }
+    std::cout << "\n----------------------------------------\n";
 
-    std::cout << "==============================\n";
+    std::cout<<player.getName() <<" vs " <<opponent.getName();
+
+    std::cout << "\n----------------------------------------\n";
+
+    Pokemon& playerPokemon = player.getTeam().getActivePokemon();
+    Pokemon& opponentPokemon = opponent.getTeam().getActivePokemon();
+
+    std::cout << "\n" << playerPokemon.getName()
+              << "\n(HP : " << playerPokemon.getCurrentHP()
+              << "/" << playerPokemon.getMaxHP() << ")";
+    std::cout << "\nVS";
+    std::cout << "\n" << opponentPokemon.getName()
+              << "\n(HP : " << opponentPokemon.getCurrentHP()
+              << "/" << opponentPokemon.getMaxHP() << ")";
+    std::cout << "\n----------------------------------------";
 }
 
 Move& Battle::chooseMove(Trainer& trainer)
@@ -117,6 +148,50 @@ Move& Battle::chooseMove(Trainer& trainer)
     }
 
     return active.getMove(choice - 1);
+}
+
+Action Battle::chooseAction(const Trainer& player) const{
+
+
+    std::cout <<"\n=========================\n";
+    std::cout <<"what will " 
+              <<player.getName()
+              <<" do:\n\n";
+
+    std::cout <<"1. Fight\n"
+              <<"2. Pokemon";
+    std::cout<<"\n=========================\n";
+
+    int choice;
+
+     while (true)
+    {
+        std::cout << "\nEnter your choice : ";
+
+        std::cin >> choice;
+
+        if (std::cin.fail())
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            std::cout << "Please enter a number.\n";
+            continue;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            return Action::Fight;
+
+        case 2:
+            return Action::Pokemon;
+        
+        default:
+            std::cout << "Invalid choice. Choose 1 or 2.\n";
+            break;   
+        }
+    }
 }
 
 void Battle::executeAttack(Trainer& attacker, Trainer& defender, Move& selectedMove)
@@ -177,6 +252,41 @@ void Battle::executeAttack(Trainer& attacker, Trainer& defender, Move& selectedM
 
         handleFaintedPokemon(defender);
     }
+}
+
+void Battle::displayTeam(const Trainer& player) const{
+
+    std::cout << "\n=========================================\n";
+    std::cout<<"              " <<player.getName() <<"'s Team\n";
+    std::cout << "=========================================\n\n";
+
+    for (int i = 0; i < 6; i++){
+
+        const Pokemon& pokemon = player.getTeam().getPokemon(i);
+
+        std::cout<<std::left
+                 <<std::setw(3) <<i+1
+                 <<std::setw(15) <<pokemon.getName();
+
+        std::cout<<"HP: "
+                 <<pokemon.getCurrentHP()
+                 <<"/"
+                 <<pokemon.getMaxHP();
+
+        if (&pokemon == &player.getTeam().getActivePokemon()){
+
+            std::cout <<"[Active]";
+        }
+
+        if (pokemon.isFainted()){
+            std::cout <<"[Fainted]";
+        }
+
+        std::cout <<"\n";
+    }
+
+    std::cout << "\n=========================================\n";
+
 }
 
 Battle::DamageResult Battle::calculateDamage(const Pokemon& attacker,
@@ -249,6 +359,30 @@ bool Battle::playerMovesFirst()
     return playerSpeed > opponentSpeed;
 }
 
+void Battle::displayWinner() const{
+
+    std::cout << "\n==============================\n";
+    std::cout << "Battle Finished!\n";
+
+    bool playerHasPokemon = player.getTeam().hasUsablePokemon();
+    bool opponentHasPokemon = opponent.getTeam().hasUsablePokemon();
+
+    if (playerHasPokemon && !opponentHasPokemon)
+    {
+        std::cout << "Winner : " << player.getName() << "\n";
+    }
+    else if (!playerHasPokemon && opponentHasPokemon)
+    {
+        std::cout << "Winner : " << opponent.getName() << "\n";
+    }
+    else
+    {
+        std::cout << "Winner : None (tie or both teams are out of usable Pokemon)\n";
+    }
+
+    std::cout << "==============================\n";
+}
+
 void Battle::handleFaintedPokemon(Trainer& trainer)
 {
     Team& team = trainer.getTeam();
@@ -282,3 +416,57 @@ bool Battle::checkWinner() const
     return true;
 }
 
+void Battle::switchPokemon(Trainer& player){
+
+    displayTeam(player);
+
+    int choice;
+
+    while (true)
+    {
+        std::cout << "\nChoose Pokemon : ";
+
+        std::cin >> choice;
+
+        if (std::cin.fail())
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            std::cout << "Please enter a number.\n";
+            continue;
+        }
+
+        if (choice < 1 || choice > 6){
+
+            std::cout << "Invalid choice. Enter 1-6.\n";
+            continue;
+        }
+
+        if (player.getTeam().getPokemon(choice-1).isFainted()){
+
+            std::cout <<player.getTeam().getPokemon(choice-1).getName()
+                     <<" is Fainted!"
+                     <<"\nChoose another: ";
+                     continue;
+        }
+
+        if (&player.getTeam().getActivePokemon() == &player.getTeam().getPokemon(choice-1)){
+
+            std::cout<<player.getTeam().getActivePokemon().getName()
+                     <<" is Already in Battle";
+                     continue;
+        }
+
+        player.getTeam().switchPokemon(choice - 1);
+
+        std::cout << "\n"
+                << player.getName()
+                << " switched to "
+                << player.getTeam().getActivePokemon().getName()
+                << "!\n";
+
+        return;
+    }
+
+}

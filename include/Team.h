@@ -12,7 +12,9 @@ public:
     Team(Pokemon team[6]);
 
     Pokemon& getActivePokemon();
+    const Pokemon& getActivePokemon() const;
     Pokemon& getPokemon(int index);
+    const Pokemon& getPokemon(int index) const;
 
     bool switchPokemon(int index);
 

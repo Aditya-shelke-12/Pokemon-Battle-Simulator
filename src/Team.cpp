@@ -10,12 +10,22 @@ Team::Team(Pokemon team[6])
     activePokemonIndex = 0;
 }
 
-Pokemon& Team::getActivePokemon()
+Pokemon& Team::getActivePokemon ()
+{
+    return team[activePokemonIndex];
+}
+
+const Pokemon& Team::getActivePokemon() const
 {
     return team[activePokemonIndex];
 }
 
 Pokemon& Team::getPokemon(int index)
+{
+    return team[index];
+}
+
+const Pokemon& Team::getPokemon(int index) const
 {
     return team[index];
 }

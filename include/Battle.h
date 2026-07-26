@@ -3,6 +3,7 @@
 #include "Trainer.h"
 #include "Pokemon.h"
 #include "Move.h"
+#include"Action.h"
 
 class Battle {
     
@@ -28,6 +29,8 @@ class Battle {
         // Chooses a move for the attacker's active Pokemon and returns it
         Move& chooseMove(Trainer& trainer);
 
+        Action chooseAction(const Trainer& trainer) const;
+
         // Executes a single attack from attacker to defender using the given move
         void executeAttack(
             Trainer& attacker,
@@ -36,6 +39,14 @@ class Battle {
 
         // Handles switching after a Pokémon faints
         void handleFaintedPokemon(Trainer& trainer);
+
+        void switchPokemon(Trainer& trainer);
+
+        void displayWinner() const;
+
+        void displayBattleStatus() ;
+
+        void displayTeam(const Trainer& trainer) const;
 
         // Returns true if the battle has ended
         bool checkWinner() const;
