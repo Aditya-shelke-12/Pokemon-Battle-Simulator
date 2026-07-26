@@ -268,10 +268,11 @@ void Battle::displayTeam(const Trainer& player) const{
                  <<std::setw(3) <<i+1
                  <<std::setw(15) <<pokemon.getName();
 
-        std::cout<<"HP: "
-                 <<pokemon.getCurrentHP()
+        std::cout<<std::left
+                 <<"HP: "
+                 <<std::setw(3) <<pokemon.getCurrentHP()
                  <<"/"
-                 <<pokemon.getMaxHP();
+                 <<std::setw(3) <<pokemon.getMaxHP();
 
         if (&pokemon == &player.getTeam().getActivePokemon()){
 
@@ -387,20 +388,7 @@ void Battle::handleFaintedPokemon(Trainer& trainer)
 {
     Team& team = trainer.getTeam();
 
-    for (int i = 0; i < 6; i++)
-    {
-        if (!team.getPokemon(i).isFainted())
-        {
-            team.switchPokemon(i);
-
-            std::cout << "\n" <<trainer.getName()
-                      << " sent out "
-                      << team.getActivePokemon().getName()
-                      << "!\n";
-
-            return;
-        }
-    }
+    switchPokemon(trainer);
 
     std::cout << trainer.getName()
               << " has no usable Pokemon left!\n\n";
